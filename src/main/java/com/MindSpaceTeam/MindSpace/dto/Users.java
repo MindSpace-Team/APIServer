@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @Entity
-public class User {
+public class Users {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
     @Column
@@ -20,14 +20,14 @@ public class User {
     @Column
     private String name;
 
-    @Column(name="oauth_provider")
+    @Column
     private String oauthProvider;
 
     @Column
     private String role;
 
     @Builder
-    public User(String email, String name, String oauthProvider, String role) {
+    public Users(String email, String name, String oauthProvider, String role) {
         this.email = email;
         this.name = name;
         this.oauthProvider = oauthProvider;
