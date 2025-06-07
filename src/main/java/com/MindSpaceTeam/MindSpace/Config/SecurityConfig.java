@@ -3,6 +3,7 @@ package com.MindSpaceTeam.MindSpace.Config;
 import com.MindSpaceTeam.MindSpace.Service.Oauth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,11 +25,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(http ->
-                            http.requestMatchers("/private/**").authenticated()
+                            http.requestMatchers("/workspaces/**", "/workspace/**").authenticated()
                                     .anyRequest().permitAll()
                 ).oauth2Login(oauth2 -> oauth2
-                        .loginPage("/loginForm")
-                        .defaultSuccessUrl("/")
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/workspaces")
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(oAuth2UserService))
                 ).build();
