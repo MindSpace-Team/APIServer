@@ -1,4 +1,4 @@
-package com.MindSpaceTeam.MindSpace.dto;
+package com.MindSpaceTeam.MindSpace.Entity;
 
 import jakarta.persistence.*;
 import lombok.Builder;

@@ -1,6 +1,6 @@
 package com.MindSpaceTeam.MindSpace.Repository;
 
-import com.MindSpaceTeam.MindSpace.dto.Users;
+import com.MindSpaceTeam.MindSpace.Entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
