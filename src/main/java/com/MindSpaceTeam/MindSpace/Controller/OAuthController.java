@@ -6,13 +6,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -24,8 +21,6 @@ import java.util.UUID;
 public class OAuthController {
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String clientId;
-    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
-    private String clientSecret;
     @Value("${oauth2.redirection-url}")
     private String redirectUrl;
     private String scope = URLEncoder.encode("profile email", StandardCharsets.UTF_8);
@@ -61,24 +56,7 @@ public class OAuthController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
-        String requestUrl = "https://oauth2.googleapis.com/token";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("code", authorizationCode);
-        body.add("client_id", clientId);
-        body.add("client_secret", clientSecret);
-        body.add("redirect_uri", redirectUrl);
-        body.add("grant_type", "authorization_code");
-
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.postForEntity(URI.create(requestUrl), requestEntity, String.class);
-        String bodyData = response.getBody();
-
-        LoginResult result = this.oauth2UserService.processLogin(bodyData);
+        LoginResult result = this.oauth2UserService.processLogin(authorizationCode);
         if (result == LoginResult.LOGIN_SUCCESS) {
             return new ResponseEntity<>(HttpStatus.OK);
         } else if(result == LoginResult.SIGN_UP_SUCCESS) {
@@ -87,5 +65,4 @@ public class OAuthController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 }

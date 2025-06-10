@@ -9,32 +9,32 @@ import com.MindSpaceTeam.MindSpace.dto.UserInfoDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.ErrorResponseException;
 
-import java.util.Base64;
 import java.util.Optional;
 
 @Service
 public class Oauth2UserService {
-    private UserRepository userRepository;
-    private EntityConverter entityConverter;
-    @Value("spring.security.oauth2.client.registration.google.client-secret")
-    private String clientSecret;
+    private final UserRepository userRepository;
+    private final EntityConverter entityConverter;
+    private final OauthJwtService oauthJwtService;
 
-    public Oauth2UserService(UserRepository userRepository, EntityConverter entityConverter) {
+    public Oauth2UserService(UserRepository userRepository, EntityConverter entityConverter, OauthJwtService oauthJwtService) {
         this.userRepository = userRepository;
         this.entityConverter = entityConverter;
+        this.oauthJwtService = oauthJwtService;
     }
 
-    // Todo: Refactoring필요
-    public LoginResult processLogin(String bodyData) {
+    public LoginResult processLogin(String authorizationCode) {
         try {
-            String userInfoJwtToken = getProfileToken(bodyData);
-            String userInfo = parseProfileJWTToken(userInfoJwtToken);
-            // DTO변환
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode nodes = mapper.readTree(userInfo);
+            String authorizationResponse = this.oauthJwtService.requestJwtToken(authorizationCode, "authorization_code");
+            String userJwtToken = this.oauthJwtService.getProfileToken(authorizationResponse);
+//            if (!this.oauthJwtService.verifyToken(userJwtToken)) {
+//                throw new ErrorResponseException(HttpStatus.BAD_REQUEST);
+//            }
+            JsonNode nodes = this.oauthJwtService.getPayLoadJsonNode(userJwtToken);
             UserInfoDto userDto = GoogleUserInfoDto.builder()
                     .email(nodes.get("email").asText())
                     .name(nodes.get("name").asText())
@@ -51,19 +51,5 @@ public class Oauth2UserService {
         } catch(JsonProcessingException e) {
             return LoginResult.SERVER_ERROR;
         }
-    }
-
-    public String getProfileToken(String bodyData) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode node = mapper.readTree(bodyData);
-        return node.get("id_token").asText();
-    }
-
-    public String parseProfileJWTToken(String jwtToken) {
-        String[] sections = jwtToken.split("\\.");
-        String payload = sections[1];
-        Base64.Decoder decoder = Base64.getDecoder();
-        String infos = new String(decoder.decode(payload));
-        return infos;
     }
 }
