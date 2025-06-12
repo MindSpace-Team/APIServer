@@ -13,6 +13,13 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.math.BigInteger;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 
 
@@ -58,19 +65,56 @@ public class OauthJwtService {
         String signature = sections[2];
         String headerInfo = decodeToken(header);
         try {
-            JsonNode headerNode = jsonMapper.toJsonNode(headerInfo);
-            String alg = headerNode.get("alg").asText();
-            if (alg.equals("RS256")) {
-                String serverSignature = hmacSha256(header + "." + payload);
-                if (serverSignature.equals(signature)) {
-                    return true;
-                }
-            }
+            PublicKey publicKey = getPublicKey(headerInfo);
+            String signedData = header + "." + payload;
+
+            byte[] signatureBytes = Base64.getUrlDecoder().decode(signature);
+
+            Signature sig = Signature.getInstance("SHA256withRSA");
+            sig.initVerify(publicKey);
+            sig.update(signedData.getBytes());
+            return sig.verify(signatureBytes);
         } catch (Exception e) {
             e.printStackTrace();
             throw new ErrorResponseException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return false;
+    }
+
+    public PublicKey getPublicKey(String headerInfo) throws JsonProcessingException, NoSuchAlgorithmException, InvalidKeySpecException {
+        JsonNode myKey = requestPublicKey(headerInfo);
+        String n_base64url = myKey.get("n").asText();
+        String e_base64url = myKey.get("e").asText();
+
+        byte[] nBytes = Base64.getUrlDecoder().decode(n_base64url);
+        byte[] eBytes = Base64.getUrlDecoder().decode(e_base64url);
+
+        BigInteger modulus = new BigInteger(1, nBytes);
+        BigInteger exponent = new BigInteger(1, eBytes);
+
+        RSAPublicKeySpec keySpec = new RSAPublicKeySpec(modulus, exponent);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        return keyFactory.generatePublic(keySpec);
+    }
+
+    public JsonNode requestPublicKey(String headerInfo) throws JsonProcessingException {
+        final String PUBLICKEY_REQUEST_URL = "https://www.googleapis.com/oauth2/v3/certs";
+        JsonNode headerNode = this.jsonMapper.toJsonNode(headerInfo);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        String response = restTemplate.getForObject(PUBLICKEY_REQUEST_URL, String.class);
+        JsonNode keys = this.jsonMapper.toJsonNode(response).get("keys");
+        JsonNode myKey = null;
+        if (keys != null && keys.isArray()) {
+            for (JsonNode key : keys) {
+                if (key.get("kid").asText().equals(headerNode.get("kid").asText())) {
+                    myKey = key;
+                    break;
+                }
+            }
+        }
+
+        return myKey;
     }
 
     public String requestOauthPublicKey() throws JsonProcessingException {
