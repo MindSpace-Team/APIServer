@@ -19,4 +19,8 @@ public enum OauthProvider {
         }
         throw new IllegalArgumentException("Unknown provider: " + providerName);
     }
+
+    public String getProviderName() {
+        return this.providerName;
+    }
 }
