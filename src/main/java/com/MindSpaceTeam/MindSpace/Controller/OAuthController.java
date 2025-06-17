@@ -6,6 +6,7 @@ import com.MindSpaceTeam.MindSpace.Service.Oauth2UserService;
 import com.MindSpaceTeam.MindSpace.Service.Result.LoginResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
-import java.util.Objects;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 public class OAuthController {
     private Oauth2UserService oauth2UserService;
@@ -30,9 +31,14 @@ public class OAuthController {
     public ResponseEntity<String> authorizePage(@PathVariable(value="provider") OauthProvider provider, HttpServletRequest request) {
         String state = UUID.randomUUID().toString();
         HttpSession session = request.getSession();
-        String redirectUrl = this.oauth2ProviderMapping.getOauthRedirectionUrl(provider, state);
+        String redirectUrl;
+        try {
+            redirectUrl = this.oauth2ProviderMapping.getOauthRedirectionUrl(provider, state);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            log.warn("Failed to get redirectUrl {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         HttpHeaders headers = new HttpHeaders();
-        System.out.println(redirectUrl);
         session.setAttribute("oauth2_state", state);
         headers.setLocation(URI.create(redirectUrl));
 
@@ -46,9 +52,15 @@ public class OAuthController {
                                                            @RequestParam(value = "prompt", defaultValue="none") String prompt,
                                                            @PathVariable(value = "provider") OauthProvider provider) {
         HttpSession session = request.getSession();
-        String savedState = Objects.toString(session.getAttribute("oauth2_state"));
+        String savedState = session.getAttribute("oauth2_state").toString();
 
-        if (savedState == null || !savedState.equals(state)) {
+        if (savedState == null) {
+            log.warn("State code is not exist in session");
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        if (!savedState.equals(state)) {
+            log.warn("Failed to verify state code");
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 

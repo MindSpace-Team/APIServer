@@ -11,10 +11,8 @@ import java.nio.charset.StandardCharsets;
 public class OauthProviderMapping {
 
     // Google
-    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    @Value("${oauth2.google.client-id}")
     private String googleClientId;
-    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
-    private String googleClientSecret;
     @Value("${oauth2.google.redirection-url}")
     private String googleRedirectionUrl;
     private String scope = URLEncoder.encode("profile email", StandardCharsets.UTF_8);
@@ -24,9 +22,9 @@ public class OauthProviderMapping {
              case Google:
                  return getGoogleLoginRedirectionUrl(state);
              case Naver:
-                 return "null";
+                 throw new IllegalStateException("Naver is not supported yet");
              case Kakao:
-                 return "null";
+                 throw new IllegalStateException("Kakao is not supported yet");
          }
 
          throw new IllegalArgumentException("Unknown oauth provider: " + oauthProvider);
