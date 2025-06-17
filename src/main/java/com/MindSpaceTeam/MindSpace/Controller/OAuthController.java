@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
-import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -26,14 +25,19 @@ public class OAuthController {
     public OAuthController(Oauth2UserService oauth2UserService, OauthProviderMapping oauth2ProviderMapping) {
         this.oauth2UserService = oauth2UserService;
         this.oauth2ProviderMapping = oauth2ProviderMapping;
-
     }
 
     @GetMapping("/oauth2/authorization/{provider}")
     public ResponseEntity<String> authorizePage(@PathVariable(value="provider") OauthProvider provider, HttpServletRequest request) {
         String state = UUID.randomUUID().toString();
         HttpSession session = request.getSession();
-        String redirectUrl = this.oauth2ProviderMapping.getOauthRedirectionUrl(provider, state);
+        String redirectUrl;
+        try {
+            redirectUrl = this.oauth2ProviderMapping.getOauthRedirectionUrl(provider, state);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            log.warn("Failed to get redirectUrl {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         HttpHeaders headers = new HttpHeaders();
         session.setAttribute("oauth2_state", state);
         headers.setLocation(URI.create(redirectUrl));

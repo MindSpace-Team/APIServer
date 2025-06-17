@@ -5,6 +5,9 @@ import com.MindSpaceTeam.MindSpace.Components.JWT.API.Oauth2RequestAPI;
 import com.MindSpaceTeam.MindSpace.Components.JWT.Type.OauthProvider;
 import com.MindSpaceTeam.MindSpace.dto.JWTToken;
 import com.fasterxml.jackson.databind.JsonNode;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.ErrorResponseException;
@@ -16,6 +19,7 @@ import java.security.Signature;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 
+@Slf4j
 @Component
 public class GoogleJwtVerifier implements JwtVerifier{
 
@@ -39,13 +43,12 @@ public class GoogleJwtVerifier implements JwtVerifier{
             String signedData = token.getHeader() + "." + token.getPayload();
 
             byte[] signatureBytes = Base64.getUrlDecoder().decode(token.getSignature());
-
             Signature sig = Signature.getInstance("SHA256withRSA");
             sig.initVerify(publicKey);
             sig.update(signedData.getBytes());
             return sig.verify(signatureBytes);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("JWT Token 검증 실패", e);
             throw new ErrorResponseException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
