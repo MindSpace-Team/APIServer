@@ -1,0 +1,19 @@
+= MindSpace API Documentation
+:toc: left
+:toclevels: 2
+:snippets: {projectdir}/build/generated-snippets
+
+== OAuth2 페이지 요청
+
+=== OAuth2 인증 페이지 요청
+include::{snippets}/oauth2/page/success/http-request.adoc[]
+
+=== OAuth2 인증 페이지 Path Params
+include::{snippets}/oauth2/page/success/path-parameters.adoc[]
+
+=== OAuth2 인증 페이지 정상 응답
+include::{snippets}/oauth2/page/success/http-response.adoc[]
+
+=== OAuth2 인증 페이지 예외 응답
+include::{snippets}/oauth2/page/exception/http-response.adoc[]
+
