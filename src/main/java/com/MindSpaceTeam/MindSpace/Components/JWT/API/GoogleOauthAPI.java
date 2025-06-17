@@ -2,9 +2,9 @@ package com.MindSpaceTeam.MindSpace.Components.JWT.API;
 
 import com.MindSpaceTeam.MindSpace.Components.JWT.Type.OauthProvider;
 import com.MindSpaceTeam.MindSpace.Components.JsonMapper;
+import com.MindSpaceTeam.MindSpace.Components.Properties.GoogleOauthProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -15,19 +15,14 @@ import org.springframework.web.client.RestTemplate;
 
 @Component
 public class GoogleOauthAPI implements Oauth2RequestAPI{
-    @Value("${spring.security.oauth2.client.registration.google.client-id}")
-    private String clientId;
-    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
-    private String clientSecret;
-    @Value("${oauth2.google.redirection-url}")
-    private String redirectUrl;
-    @Value("${oauth2.google.publicKey-url}")
-    private String GOOGLE_PUBLIC_KEY_REQUEST_URL;
-    private static final String TOKEN_REQUEST_URL = "https://oauth2.googleapis.com/token";
+    private GoogleOauthProperties properties;
     private final JsonMapper jsonMapper;
+    private final RestTemplate restTemplate;
 
-    public GoogleOauthAPI(JsonMapper jsonMapper) {
+    public GoogleOauthAPI(JsonMapper jsonMapper, RestTemplate restTemplate, GoogleOauthProperties properties) {
         this.jsonMapper = jsonMapper;
+        this.restTemplate = restTemplate;
+        this.properties = properties;
     }
 
     @Override
@@ -42,24 +37,21 @@ public class GoogleOauthAPI implements Oauth2RequestAPI{
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("code", authorizationCode);
-        body.add("client_id", clientId);
-        body.add("client_secret", clientSecret);
-        body.add("redirect_uri", redirectUrl);
+        body.add("client_id", properties.getClientId());
+        body.add("client_secret", properties.getClientSecret());
+        body.add("redirect_uri", properties.getRedirectUrl());
         body.add("grant_type", grantType);
 
-        RestTemplate restTemplate = new RestTemplate();
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
-        return restTemplate.postForObject(TOKEN_REQUEST_URL, request, String.class);
+        return restTemplate.postForObject(properties.getTokenUrl(), request, String.class);
     }
 
     @Override
     public JsonNode requestPublicKeys(String headerInfo) throws JsonProcessingException {
         JsonNode headerNode = this.jsonMapper.toJsonNode(headerInfo);
 
-        RestTemplate restTemplate = new RestTemplate();
-
-        String response = restTemplate.getForObject(GOOGLE_PUBLIC_KEY_REQUEST_URL, String.class);
+        String response = restTemplate.getForObject(properties.getPublicKeyUrl(), String.class);
         JsonNode keys = this.jsonMapper.toJsonNode(response).get("keys");
         JsonNode myKey = null;
         if (keys != null && keys.isArray()) {
