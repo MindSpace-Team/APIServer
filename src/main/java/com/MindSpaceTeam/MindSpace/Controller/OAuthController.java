@@ -1,9 +1,9 @@
 package com.MindSpaceTeam.MindSpace.Controller;
 
-import com.MindSpaceTeam.MindSpace.Components.JWT.OauthProviderMapping;
-import com.MindSpaceTeam.MindSpace.Components.JWT.Type.OauthProvider;
+import com.MindSpaceTeam.MindSpace.Components.Auth.OauthProviderMapping;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
 import com.MindSpaceTeam.MindSpace.Service.Oauth2UserService;
-import com.MindSpaceTeam.MindSpace.Service.Result.LoginResult;
+import com.MindSpaceTeam.MindSpace.dto.Login.LoginResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -65,12 +65,20 @@ public class OAuthController {
         }
 
         LoginResult result = this.oauth2UserService.processLogin(authorizationCode, provider);
-        if (result == LoginResult.LOGIN_SUCCESS) {
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else if(result == LoginResult.SIGN_UP_SUCCESS) {
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } else {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+        ResponseCookie cookie = ResponseCookie.from(result.getRefreshToken().getToken())
+                .httpOnly(true)
+                .secure(true)
+                .maxAge(2 * 60 * 60)
+                .sameSite("Strict")
+                .build();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
+        headers.setBearerAuth(result.getAccessToken().getToken());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body("로그인 성공");
     }
 }
