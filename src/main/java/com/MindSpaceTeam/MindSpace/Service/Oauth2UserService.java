@@ -1,17 +1,21 @@
 package com.MindSpaceTeam.MindSpace.Service;
 
-import com.MindSpaceTeam.MindSpace.Components.JWT.Factory.Oauth2RequestAPIFactory;
-import com.MindSpaceTeam.MindSpace.Components.JWT.Factory.VerifierFactory;
-import com.MindSpaceTeam.MindSpace.Components.JWT.Type.OauthProvider;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.Factory.Oauth2RequestAPIFactory;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.Factory.VerifierFactory;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Token.RefreshTokenizer;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
 import com.MindSpaceTeam.MindSpace.Components.JsonMapper;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Token.JwtTokenizer;
 import com.MindSpaceTeam.MindSpace.Repository.UserRepository;
 import com.MindSpaceTeam.MindSpace.Entity.Users;
-import com.MindSpaceTeam.MindSpace.Components.JWT.API.Oauth2RequestAPI;
-import com.MindSpaceTeam.MindSpace.Components.JWT.Verifier.JwtVerifier;
-import com.MindSpaceTeam.MindSpace.Service.Result.LoginResult;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.API.Oauth2RequestAPI;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.Verifier.JwtVerifier;
 import com.MindSpaceTeam.MindSpace.dto.EntityConverter;
 import com.MindSpaceTeam.MindSpace.dto.GoogleUserInfoDto;
 import com.MindSpaceTeam.MindSpace.dto.JWTToken;
+import com.MindSpaceTeam.MindSpace.dto.Login.AccessToken;
+import com.MindSpaceTeam.MindSpace.dto.Login.LoginResult;
+import com.MindSpaceTeam.MindSpace.dto.Login.RefreshToken;
 import com.MindSpaceTeam.MindSpace.dto.UserInfoDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,7 +24,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.ErrorResponseException;
 
+import java.time.Instant;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Optional;
 
 @Slf4j
@@ -31,13 +37,17 @@ public class Oauth2UserService {
     private final Oauth2RequestAPIFactory oauth2RequestAPIFactory;
     private final VerifierFactory verifierFactory;
     private final JsonMapper jsonMapper;
+    private final JwtTokenizer jwtTokenizer;
+    private final RefreshTokenizer refreshTokenizer;
 
-    public Oauth2UserService(UserRepository userRepository, EntityConverter entityConverter, Oauth2RequestAPIFactory oauth2RequestAPIFactory, VerifierFactory verifierFactory, JsonMapper jsonMapper) {
+    public Oauth2UserService(UserRepository userRepository, EntityConverter entityConverter, Oauth2RequestAPIFactory oauth2RequestAPIFactory, VerifierFactory verifierFactory, JsonMapper jsonMapper, JwtTokenizer jwtTokenizer, RefreshTokenizer refreshTokenizer) {
         this.userRepository = userRepository;
         this.entityConverter = entityConverter;
         this.oauth2RequestAPIFactory = oauth2RequestAPIFactory;
         this.verifierFactory = verifierFactory;
         this.jsonMapper = jsonMapper;
+        this.jwtTokenizer = jwtTokenizer;
+        this.refreshTokenizer = refreshTokenizer;
     }
 
     public LoginResult processLogin(String authorizationCode, OauthProvider provider) {
@@ -47,14 +57,14 @@ public class Oauth2UserService {
             return handleUserLogin(jwtToken, provider);
         } catch(JsonProcessingException e) {
             log.warn("Failed to Json parsing", e);
-            return LoginResult.SERVER_ERROR;
+            throw new ErrorResponseException(HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (ErrorResponseException e) {
             log.warn("Failed to verify token", e);
-            return LoginResult.LOGIN_FAILED;
+            throw new ErrorResponseException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         catch(Exception e) {
             log.warn("Failed by INTERNAL SERVER ERROR", e);
-            return LoginResult.SERVER_ERROR;
+            throw new ErrorResponseException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -92,13 +102,24 @@ public class Oauth2UserService {
                 .role("USER").build();
         Users user = this.entityConverter.getUserEntity(userDto);
         Optional<Users> foundedUser = this.userRepository.findByEmail(user.getEmail());
-        if (foundedUser.isEmpty()) {
+        if (foundedUser.isEmpty()) { // Sign up
             log.info("%s User signed up".formatted(user.getEmail()));
-            this.userRepository.save(user);
-            return LoginResult.SIGN_UP_SUCCESS;
-        } else {
+            Users userInfo = this.userRepository.save(user);
+            return getLoginResult(userInfo);
+        } else { // Sign in
             log.info("%s User signed in".formatted(user.getEmail()));
-            return LoginResult.LOGIN_SUCCESS;
+            return getLoginResult(user);
         }
+    }
+
+    private LoginResult getLoginResult(Users userInfo) {
+        String userId = Long.toString(userInfo.getUserId());
+        long now = Instant.now().getEpochSecond();
+        Date iat = Date.from(Instant.ofEpochSecond(now));
+        Date exp = Date.from(iat.toInstant().plusSeconds(15 * 60));
+        AccessToken accessToken = new AccessToken(jwtTokenizer.createAccessToken(userId, iat));
+        RefreshToken refreshToken = new RefreshToken(refreshTokenizer.createRefreshToken(), exp);
+
+        return new LoginResult(accessToken, refreshToken);
     }
 }
