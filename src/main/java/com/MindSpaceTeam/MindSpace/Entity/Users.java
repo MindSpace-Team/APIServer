@@ -27,11 +27,12 @@ public class Users {
     private String role;
 
     @Builder
-    public Users(String email, String name, String oauthProvider, String role) {
+    public Users(String email, String name, String oauthProvider, String role, Long userId) {
         this.email = email;
         this.name = name;
         this.oauthProvider = oauthProvider;
         this.role = role;
+        this.userId = userId;
     }
 
 }
