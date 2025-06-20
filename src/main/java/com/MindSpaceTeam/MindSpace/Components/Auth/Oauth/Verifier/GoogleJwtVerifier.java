@@ -1,8 +1,8 @@
-package com.MindSpaceTeam.MindSpace.Components.JWT.Verifier;
+package com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.Verifier;
 
-import com.MindSpaceTeam.MindSpace.Components.JWT.API.GoogleOauthAPI;
-import com.MindSpaceTeam.MindSpace.Components.JWT.API.Oauth2RequestAPI;
-import com.MindSpaceTeam.MindSpace.Components.JWT.Type.OauthProvider;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.API.GoogleOauthAPI;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.API.Oauth2RequestAPI;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
 import com.MindSpaceTeam.MindSpace.dto.JWTToken;
 import com.fasterxml.jackson.databind.JsonNode;
 

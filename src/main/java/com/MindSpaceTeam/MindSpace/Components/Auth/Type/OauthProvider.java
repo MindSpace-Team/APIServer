@@ -1,4 +1,4 @@
-package com.MindSpaceTeam.MindSpace.Components.JWT.Type;
+package com.MindSpaceTeam.MindSpace.Components.Auth.Type;
 
 public enum OauthProvider {
     Google("google"),

@@ -1,7 +1,7 @@
-package com.MindSpaceTeam.MindSpace.Components.JWT.Factory;
+package com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.Factory;
 
-import com.MindSpaceTeam.MindSpace.Components.JWT.API.Oauth2RequestAPI;
-import com.MindSpaceTeam.MindSpace.Components.JWT.Type.OauthProvider;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.API.Oauth2RequestAPI;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

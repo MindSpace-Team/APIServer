@@ -1,6 +1,6 @@
-package com.MindSpaceTeam.MindSpace.Components.JWT;
+package com.MindSpaceTeam.MindSpace.Components.Auth;
 
-import com.MindSpaceTeam.MindSpace.Components.JWT.Type.OauthProvider;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
