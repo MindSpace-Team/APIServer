@@ -1,7 +1,7 @@
 package com.MindSpaceTeam.MindSpace.Component.JWT.Verifier;
 
-import com.MindSpaceTeam.MindSpace.Components.JWT.API.GoogleOauthAPI;
-import com.MindSpaceTeam.MindSpace.Components.JWT.Verifier.GoogleJwtVerifier;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.API.GoogleOauthAPI;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.Verifier.GoogleJwtVerifier;
 import com.MindSpaceTeam.MindSpace.Components.JsonMapper;
 import com.MindSpaceTeam.MindSpace.Components.Properties.GoogleOauthProperties;
 import com.MindSpaceTeam.MindSpace.dto.JWTToken;
