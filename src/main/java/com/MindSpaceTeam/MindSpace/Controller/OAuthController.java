@@ -66,7 +66,7 @@ public class OAuthController {
 
         LoginResult result = this.oauth2UserService.processLogin(authorizationCode, provider);
 
-        ResponseCookie cookie = ResponseCookie.from(result.getRefreshToken().getToken())
+        ResponseCookie cookie = ResponseCookie.from("refresh", result.getRefreshToken().getToken())
                 .httpOnly(true)
                 .secure(true)
                 .maxAge(2 * 60 * 60)
