@@ -108,7 +108,7 @@ public class Oauth2UserService {
             return getLoginResult(userInfo);
         } else { // Sign in
             log.info("%s User signed in".formatted(user.getEmail()));
-            return getLoginResult(user);
+            return getLoginResult(foundedUser.get());
         }
     }
 
