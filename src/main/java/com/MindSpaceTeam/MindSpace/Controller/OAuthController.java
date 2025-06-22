@@ -3,7 +3,7 @@ package com.MindSpaceTeam.MindSpace.Controller;
 import com.MindSpaceTeam.MindSpace.Components.Auth.OauthProviderMapping;
 import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
 import com.MindSpaceTeam.MindSpace.Service.Oauth2UserService;
-import com.MindSpaceTeam.MindSpace.dto.Login.LoginResult;
+import com.MindSpaceTeam.MindSpace.dto.Login.Tokens;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +64,7 @@ public class OAuthController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
-        LoginResult result = this.oauth2UserService.processLogin(authorizationCode, provider);
+        Tokens result = this.oauth2UserService.processLogin(authorizationCode, provider);
 
         ResponseCookie cookie = ResponseCookie.from("refresh", result.getRefreshToken().getToken())
                 .httpOnly(true)
@@ -75,7 +75,7 @@ public class OAuthController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
-        headers.setBearerAuth(result.getAccessToken().getToken());
+        headers.setBearerAuth(result.getAccessToken());
 
         return ResponseEntity.ok()
                 .headers(headers)
