@@ -105,12 +105,12 @@ public class Oauth2UserService {
             log.info("%s User signed up".formatted(user.getEmail()));
             Users userInfo = this.userRepository.save(user);
             Tokens result = getLoginResult(userInfo);
-//            saveRefreshTokenToRedis(result.getRefreshToken());
+            saveRefreshTokenToRedis(result.getRefreshToken());
             return result;
         } else { // Sign in
             log.info("%s User signed in".formatted(user.getEmail()));
             Tokens result = getLoginResult(foundedUser.get());
-//            saveRefreshTokenToRedis(result.getRefreshToken());
+            saveRefreshTokenToRedis(result.getRefreshToken());
             return result;
         }
     }
@@ -129,7 +129,7 @@ public class Oauth2UserService {
 
     private void saveRefreshTokenToRedis(RefreshToken refreshTokenInfo) {
         HashOperations<String, String, Object> hashOps = redisTemplate.opsForHash();
-        String key = "refresh: %s".formatted(refreshTokenInfo.getToken());
+        String key = "refresh:%s".formatted(refreshTokenInfo.getToken());
         Map<String, Object> values = new HashMap<>();
         values.put("exp", Long.toString(refreshTokenInfo.getExp().toInstant().getEpochSecond()));
         values.put("iat", Long.toString(refreshTokenInfo.getIat().toInstant().getEpochSecond()));
