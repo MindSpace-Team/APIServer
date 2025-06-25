@@ -1,17 +1,16 @@
 package com.MindSpaceTeam.MindSpace.Controller;
 
 import com.MindSpaceTeam.MindSpace.Components.Auth.OauthProviderMapping;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Token.Exception.RefreshTokenExpiredException;
 import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
 import com.MindSpaceTeam.MindSpace.Service.Oauth2UserService;
+import com.MindSpaceTeam.MindSpace.Service.RefreshService;
 import com.MindSpaceTeam.MindSpace.dto.Login.Tokens;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.UUID;
@@ -21,10 +20,12 @@ import java.util.UUID;
 public class OAuthController {
     private Oauth2UserService oauth2UserService;
     private OauthProviderMapping oauth2ProviderMapping;
+    private RefreshService refreshService;
 
-    public OAuthController(Oauth2UserService oauth2UserService, OauthProviderMapping oauth2ProviderMapping) {
+    public OAuthController(Oauth2UserService oauth2UserService, OauthProviderMapping oauth2ProviderMapping, RefreshService refreshService) {
         this.oauth2UserService = oauth2UserService;
         this.oauth2ProviderMapping = oauth2ProviderMapping;
+        this.refreshService = refreshService;
     }
 
     @GetMapping("/oauth2/authorization/{provider}")
@@ -80,5 +81,24 @@ public class OAuthController {
         return ResponseEntity.ok()
                 .headers(headers)
                 .body("로그인 성공");
+    }
+
+    @PostMapping(value = "/refresh")
+    public ResponseEntity<String> refreshAccessToken(@CookieValue(name = "refresh", required = false) String refreshToken) {
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh_token_expired");
+        }
+
+        String accessToken;
+        try {
+            accessToken = this.refreshService.refreshAccessToken(refreshToken);
+        } catch (RefreshTokenExpiredException e) {
+            log.info("Refresh token was expired");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+
+        log.info("Access token reassigned to user (token: %s)".formatted(accessToken));
+
+        return ResponseEntity.ok(accessToken);
     }
 }
