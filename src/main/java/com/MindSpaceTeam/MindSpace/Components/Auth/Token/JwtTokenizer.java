@@ -13,7 +13,6 @@ public class JwtTokenizer {
     private String iss;
     @Value("mindspace.jwt.secret-key")
     private String secretKey;
-    private Date iat;
 
     public JwtTokenizer() {}
 
