@@ -1,6 +1,6 @@
-package com.MindSpaceTeam.MindSpace.Components.JWT.API;
+package com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.API;
 
-import com.MindSpaceTeam.MindSpace.Components.JWT.Type.OauthProvider;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 

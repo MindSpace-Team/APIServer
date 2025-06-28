@@ -1,6 +1,6 @@
 package com.MindSpaceTeam.MindSpace.Components.Converter;
 
-import com.MindSpaceTeam.MindSpace.Components.JWT.Type.OauthProvider;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 

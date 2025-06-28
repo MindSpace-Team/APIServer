@@ -1,9 +1,13 @@
 package com.MindSpaceTeam.MindSpace.Controller;
 
-import com.MindSpaceTeam.MindSpace.Components.JWT.OauthProviderMapping;
-import com.MindSpaceTeam.MindSpace.Components.JWT.Type.OauthProvider;
+import com.MindSpaceTeam.MindSpace.Components.Auth.OauthProviderMapping;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
 import com.MindSpaceTeam.MindSpace.Service.Oauth2UserService;
+import com.MindSpaceTeam.MindSpace.dto.Login.Tokens;
+import com.MindSpaceTeam.MindSpace.dto.Login.RefreshToken;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -17,6 +21,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.time.Instant;
+import java.util.Date;
 
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
@@ -74,6 +81,38 @@ class OAuthControllerTest {
                 .andDo(document("oauth2/page/exception",
                         pathParameters(
                                 parameterWithName("provider").description("Naver, Kakao는 아직 지원하지 않는 기능")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("Login 로직 Controller 테스트")
+    void loginResultTest() throws Exception{
+        String state = "sample-state";
+        String authCode = "sample-auth-code";
+        String authUser = "0";
+        String prompt = "none";
+        String refreshTokenUUID = "sample-refresh-token";
+        String accessToken = "sample-access-token";
+
+        long now = Instant.now().getEpochSecond();
+        RefreshToken refreshToken = new RefreshToken(refreshTokenUUID, authUser, Date.from(Instant.ofEpochSecond(now)), Date.from(Instant.ofEpochSecond(now + 2 * 60 * 60)));
+        Tokens loginResult = new Tokens(accessToken, refreshToken);
+        Mockito.when(this.oauth2UserService.processLogin(Mockito.anyString(), Mockito.any()))
+                .thenReturn(loginResult);
+
+        mockMvc.perform(get("/login/oauth2/code/{provider}", "Google")
+                        .param("state", state)
+                        .param("code", authCode)
+                        .param("authuser", authUser)
+                        .param("prompt", prompt)
+                        .sessionAttr("oauth2_state", state))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, Matchers.containsString(refreshTokenUUID)))
+                .andDo(document("oauth2/page/exception",
+                        pathParameters(
+                                parameterWithName("provider").description("Oauth Provider(Naver, KaKao는 아직 미지원)")
                         )
                 ));
     }

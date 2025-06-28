@@ -1,4 +1,4 @@
-package com.MindSpaceTeam.MindSpace.Components.Commons;
+package com.MindSpaceTeam.MindSpace.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

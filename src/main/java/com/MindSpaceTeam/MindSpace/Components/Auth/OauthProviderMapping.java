@@ -1,6 +1,6 @@
-package com.MindSpaceTeam.MindSpace.Components.JWT;
+package com.MindSpaceTeam.MindSpace.Components.Auth;
 
-import com.MindSpaceTeam.MindSpace.Components.JWT.Type.OauthProvider;
+import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +13,7 @@ public class OauthProviderMapping {
     // Google
     @Value("${oauth2.google.client-id}")
     private String googleClientId;
-    @Value("${oauth2.google.redirection-url}")
+    @Value("${oauth2.google.redirect-url}")
     private String googleRedirectionUrl;
     private String scope = URLEncoder.encode("profile email", StandardCharsets.UTF_8);
 
