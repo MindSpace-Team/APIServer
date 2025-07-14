@@ -3,9 +3,9 @@ package com.MindSpaceTeam.MindSpace.Controller;
 import com.MindSpaceTeam.MindSpace.Components.Auth.OauthProviderMapping;
 import com.MindSpaceTeam.MindSpace.Components.Auth.Token.Exception.RefreshTokenExpiredException;
 import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
+import com.MindSpaceTeam.MindSpace.Entity.Users;
 import com.MindSpaceTeam.MindSpace.Service.Oauth2UserService;
 import com.MindSpaceTeam.MindSpace.Service.RefreshService;
-import com.MindSpaceTeam.MindSpace.dto.Login.Tokens;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +42,7 @@ public class OAuthController {
         HttpHeaders headers = new HttpHeaders();
         session.setAttribute("oauth2_state", state);
         headers.setLocation(URI.create(redirectUrl));
+        log.info("Redirect to {} authorization page", provider.getProviderName());
 
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
@@ -65,18 +66,21 @@ public class OAuthController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
-        Tokens result = this.oauth2UserService.processLogin(authorizationCode, provider);
+        String sessionId = session.getId();
+        Users user = this.oauth2UserService.processLogin(authorizationCode, provider);
+        session.setAttribute("sid", sessionId);
+        session.setAttribute("userId", user.getUserId());
 
-        ResponseCookie cookie = ResponseCookie.from("refresh", result.getRefreshToken().getToken())
+        ResponseCookie cookie = ResponseCookie.from("sid", sessionId)
                 .httpOnly(true)
                 .secure(true)
+                .path("/")
                 .maxAge(2 * 60 * 60)
                 .sameSite("Strict")
                 .build();
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
-        headers.setBearerAuth(result.getAccessToken());
 
         return ResponseEntity.ok()
                 .headers(headers)
