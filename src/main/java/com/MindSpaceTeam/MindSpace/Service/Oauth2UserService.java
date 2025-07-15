@@ -12,20 +12,15 @@ import com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.Verifier.JwtVerifier;
 import com.MindSpaceTeam.MindSpace.dto.EntityConverter;
 import com.MindSpaceTeam.MindSpace.dto.GoogleUserInfoDto;
 import com.MindSpaceTeam.MindSpace.dto.JWTToken;
-import com.MindSpaceTeam.MindSpace.dto.Login.Tokens;
-import com.MindSpaceTeam.MindSpace.dto.Login.RefreshToken;
 import com.MindSpaceTeam.MindSpace.dto.UserInfoDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.ErrorResponseException;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.*;
 
 @Slf4j
@@ -36,8 +31,6 @@ public class Oauth2UserService {
     private final Oauth2RequestAPIFactory oauth2RequestAPIFactory;
     private final VerifierFactory verifierFactory;
     private final JsonMapper jsonMapper;
-    private final JwtTokenizer jwtTokenizer;
-    private final RedisTemplate<String, String> redisTemplate;
 
     public Oauth2UserService(UserRepository userRepository, EntityConverter entityConverter, Oauth2RequestAPIFactory oauth2RequestAPIFactory, VerifierFactory verifierFactory, JsonMapper jsonMapper, JwtTokenizer jwtTokenizer, RedisTemplate<String, String> redisTemplate) {
         this.userRepository = userRepository;
@@ -45,11 +38,9 @@ public class Oauth2UserService {
         this.oauth2RequestAPIFactory = oauth2RequestAPIFactory;
         this.verifierFactory = verifierFactory;
         this.jsonMapper = jsonMapper;
-        this.jwtTokenizer = jwtTokenizer;
-        this.redisTemplate = redisTemplate;
     }
 
-    public Tokens processLogin(String authorizationCode, OauthProvider provider) {
+    public Users processLogin(String authorizationCode, OauthProvider provider) {
         String authorizationResponse = getAccessToken(authorizationCode, provider);
         try {
             JWTToken jwtToken = extractAndVerifyJwtToken(authorizationResponse, provider);
@@ -90,7 +81,7 @@ public class Oauth2UserService {
         return jwtToken;
     }
 
-    private Tokens handleUserLogin(JWTToken jwtToken, OauthProvider provider) throws JsonProcessingException {
+    private Users handleUserLogin(JWTToken jwtToken, OauthProvider provider) throws JsonProcessingException {
         byte[] decodedPayload = Base64.getUrlDecoder().decode(jwtToken.getPayload());
         JsonNode nodes = this.jsonMapper.toJsonNode(new String(decodedPayload));
         // Naver, Kakao Oauth기능 확장 시 추상화 해야함
@@ -103,39 +94,11 @@ public class Oauth2UserService {
         Optional<Users> foundedUser = this.userRepository.findByEmail(user.getEmail());
         if (foundedUser.isEmpty()) { // Sign up
             log.info("%s User signed up".formatted(user.getEmail()));
-            Users userInfo = this.userRepository.save(user);
-            Tokens result = getLoginResult(userInfo);
-            saveRefreshTokenToRedis(result.getRefreshToken());
-            return result;
+            return this.userRepository.save(user);
         } else { // Sign in
             log.info("%s User signed in".formatted(user.getEmail()));
-            Tokens result = getLoginResult(foundedUser.get());
-            saveRefreshTokenToRedis(result.getRefreshToken());
-            return result;
+            return user;
         }
     }
 
-    private Tokens getLoginResult(Users userInfo) {
-        String userId = Long.toString(userInfo.getUserId());
-        String uuid = UUID.randomUUID().toString();
-        long now = Instant.now().getEpochSecond();
-        Date iat = Date.from(Instant.ofEpochSecond(now));
-        Date exp = Date.from(iat.toInstant().plusSeconds(15 * 60));
-        String accessToken = jwtTokenizer.createAccessToken(userId, iat);
-        RefreshToken refreshToken = new RefreshToken(uuid, userId, iat, exp);
-
-        return new Tokens(accessToken, refreshToken);
-    }
-
-    private void saveRefreshTokenToRedis(RefreshToken refreshTokenInfo) {
-        HashOperations<String, String, Object> hashOps = redisTemplate.opsForHash();
-        String key = "refresh:%s".formatted(refreshTokenInfo.getToken());
-        Map<String, Object> values = new HashMap<>();
-        values.put("exp", Long.toString(refreshTokenInfo.getExp().toInstant().getEpochSecond()));
-        values.put("iat", Long.toString(refreshTokenInfo.getIat().toInstant().getEpochSecond()));
-        values.put("userID", refreshTokenInfo.getUserId());
-
-        hashOps.putAll(key, values);
-        redisTemplate.expire(key, Duration.ofHours(2));
-    }
 }
