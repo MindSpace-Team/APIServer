@@ -4,7 +4,6 @@ import com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.Factory.Oauth2RequestAP
 import com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.Factory.VerifierFactory;
 import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
 import com.MindSpaceTeam.MindSpace.Components.JsonMapper;
-import com.MindSpaceTeam.MindSpace.Components.Auth.Token.JwtTokenizer;
 import com.MindSpaceTeam.MindSpace.Repository.UserRepository;
 import com.MindSpaceTeam.MindSpace.Entity.Users;
 import com.MindSpaceTeam.MindSpace.Components.Auth.Oauth.API.Oauth2RequestAPI;
@@ -32,7 +31,7 @@ public class Oauth2UserService {
     private final VerifierFactory verifierFactory;
     private final JsonMapper jsonMapper;
 
-    public Oauth2UserService(UserRepository userRepository, EntityConverter entityConverter, Oauth2RequestAPIFactory oauth2RequestAPIFactory, VerifierFactory verifierFactory, JsonMapper jsonMapper, JwtTokenizer jwtTokenizer, RedisTemplate<String, String> redisTemplate) {
+    public Oauth2UserService(UserRepository userRepository, EntityConverter entityConverter, Oauth2RequestAPIFactory oauth2RequestAPIFactory, VerifierFactory verifierFactory, JsonMapper jsonMapper, RedisTemplate<String, String> redisTemplate) {
         this.userRepository = userRepository;
         this.entityConverter = entityConverter;
         this.oauth2RequestAPIFactory = oauth2RequestAPIFactory;
