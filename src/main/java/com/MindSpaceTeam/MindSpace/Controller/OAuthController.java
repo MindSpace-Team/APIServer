@@ -82,4 +82,25 @@ public class OAuthController {
                 .headers(headers)
                 .body("로그인 성공");
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> processLogout(@CookieValue("sid") String sid, HttpServletRequest request) {
+        request.getSession().invalidate();
+
+        ResponseCookie cookie = ResponseCookie.from("sid", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body("로그아웃 성공");
+    }
+
 }
