@@ -20,6 +20,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,7 +47,7 @@ class WorkSpaceControllerTest {
     @Test
     void createWorkspaceTest() throws Exception {
         WorkspaceCreateRequest request = new WorkspaceCreateRequest("title1");
-        WorkspaceResponse response = new WorkspaceResponse(1, "title1", 123123123);
+        WorkspaceResponse response = new WorkspaceResponse(1, "title1", Instant.now());
 
         Mockito.when(this.workspaceService.createWorkspace(ArgumentMatchers.any(WorkspaceCreateRequest.class)))
                         .thenReturn(response);
@@ -66,6 +69,29 @@ class WorkSpaceControllerTest {
         mockMvc.perform(post("/workspace")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(this.objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void deleteWorkSpaceTest() throws Exception {
+        long workspaceId = 1;
+
+        Mockito.doNothing().when(workspaceService).deleteWorkspace(workspaceId);
+
+        mockMvc.perform(delete("/workspace/" + workspaceId)
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void deleteWorkspaceExceptionTest() throws Exception {
+        long workspaceId = 1;
+
+        Mockito.doThrow(Exception.class)
+                .when(workspaceService).deleteWorkspace(workspaceId);
+
+        mockMvc.perform(delete("/workspace/" + workspaceId)
+                    .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());
     }
 }
