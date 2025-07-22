@@ -58,14 +58,14 @@ class WorkSpaceControllerTest {
 
     @Test
     void createWorkSpaceExceptionTest() throws Exception {
-        String body = "{ \"title\": \"title1\"}";
+        WorkspaceCreateRequest request = new WorkspaceCreateRequest("title1");
 
-        Mockito.doThrow(new DataAccessResourceFailureException("DB douwn"))
-                .when(workspaceService);
+        Mockito.when(workspaceService.createWorkspace(ArgumentMatchers.any(WorkspaceCreateRequest.class)))
+                        .thenThrow(new DataAccessResourceFailureException("DB down"));
 
         mockMvc.perform(post("/workspace")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body))
+                    .content(this.objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError());
     }
 }
