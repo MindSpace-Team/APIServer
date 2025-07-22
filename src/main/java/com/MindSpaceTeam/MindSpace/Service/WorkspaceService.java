@@ -19,4 +19,8 @@ public class WorkspaceService {
         workspace = this.workspaceRepository.save(workspace);
         return new WorkspaceResponse(workspace.getWorkspaceId(), workspace.getTitle(), workspace.getCreatedAt());
     }
+
+    public void deleteWorkspace(long workspaceId) throws Exception {
+        this.workspaceRepository.deleteById(workspaceId);
+    }
 }

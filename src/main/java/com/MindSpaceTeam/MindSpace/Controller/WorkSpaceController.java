@@ -33,4 +33,18 @@ public class WorkSpaceController {
                     .build();
         }
     }
+
+    @DeleteMapping("/workspace/{workspaceId}")
+    public ResponseEntity<Void> deleteWorkspace(@PathVariable("workspaceId") String workspaceId) {
+        try {
+            long id = Long.parseLong(workspaceId);
+            this.workspaceService.deleteWorkspace(id);
+
+            return ResponseEntity.noContent()
+                    .build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .build();
+        }
+    }
 }
