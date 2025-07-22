@@ -14,7 +14,7 @@ public class WorkspaceService {
         this.workspaceRepository = workspaceRepository;
     }
 
-    public WorkspaceResponse createWorkspace(WorkspaceCreateRequest request) {
+    public WorkspaceResponse createWorkspace(WorkspaceCreateRequest request) throws Exception {
         Workspace workspace = new Workspace(request.getTitle());
         workspace = this.workspaceRepository.save(workspace);
         return new WorkspaceResponse(workspace.getWorkspaceId(), workspace.getTitle(), workspace.getCreatedAt());
