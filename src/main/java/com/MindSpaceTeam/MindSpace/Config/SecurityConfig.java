@@ -14,8 +14,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @Slf4j
 public class SecurityConfig {
     @Bean
-    public SecurityFilterChain sercurityFilterChain(HttpSecurity httpSecurity, LoginAuthenticationFilter loginAuthenticationFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, LoginAuthenticationFilter loginAuthenticationFilter) throws Exception {
         return httpSecurity
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests((authorize) ->
                     authorize
                             .requestMatchers("/workspaces/**", "/workspace/**").authenticated()

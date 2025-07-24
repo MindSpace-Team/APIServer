@@ -24,8 +24,9 @@ public class LoginAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        log.info("Filter start");
         String path = request.getRequestURI();
-        if (!(path.startsWith("/workspace") && path.startsWith("/workspaces"))) {
+        if (!(path.startsWith("/workspace") || path.startsWith("/workspaces"))) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -33,6 +34,7 @@ public class LoginAuthenticationFilter extends OncePerRequestFilter {
         Cookie[] cookies = request.getCookies();
 
         if (cookies == null) {
+            log.warn("Cookie is required");
             response.sendRedirect("/login");
         }
 
@@ -44,12 +46,16 @@ public class LoginAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (sid == null) {
+            log.warn("Key of sid is not exist");
             response.sendRedirect("/login");
         }
 
         if (!redisTemplate.hasKey("spring:session:sessions:" + sid)) {
+            log.warn("Key of sid is not exist in redis");
             response.sendRedirect("/login");
         }
+
+        log.info("Authentication successful");
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(sid, null, List.of()));
         filterChain.doFilter(request, response);
     }
