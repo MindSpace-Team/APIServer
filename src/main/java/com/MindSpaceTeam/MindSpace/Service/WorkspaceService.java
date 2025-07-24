@@ -14,9 +14,9 @@ public class WorkspaceService {
         this.workspaceRepository = workspaceRepository;
     }
 
-    public WorkspaceResponse createWorkspace(WorkspaceCreateRequest request) {
+    public WorkspaceResponse createWorkspace(long userId, WorkspaceCreateRequest request) {
         Workspace workspace = new Workspace(request.getTitle());
         workspace = this.workspaceRepository.save(workspace);
-        return new WorkspaceResponse(workspace.getWorkspaceId(), workspace.getTitle(), workspace.getCreatedAt());
+        return new WorkspaceResponse(workspace.getWorkspaceId(), workspace.getTitle(), workspace.getCreated());
     }
 }

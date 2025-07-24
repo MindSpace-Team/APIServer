@@ -20,6 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,9 +46,9 @@ class WorkSpaceControllerTest {
     @Test
     void createWorkspaceTest() throws Exception {
         WorkspaceCreateRequest request = new WorkspaceCreateRequest("title1");
-        WorkspaceResponse response = new WorkspaceResponse(1, "title1", 123123123);
+        WorkspaceResponse response = new WorkspaceResponse(1, "title1", Instant.now());
 
-        Mockito.when(this.workspaceService.createWorkspace(ArgumentMatchers.any(WorkspaceCreateRequest.class)))
+        Mockito.when(this.workspaceService.createWorkspace(ArgumentMatchers.any(), ArgumentMatchers.any(WorkspaceCreateRequest.class)))
                         .thenReturn(response);
 
         mockMvc.perform(post("/workspace")

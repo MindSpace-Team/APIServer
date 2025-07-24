@@ -4,9 +4,8 @@ import com.MindSpaceTeam.MindSpace.Service.WorkspaceService;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceCreateRequest;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,8 +17,6 @@ import java.net.URI;
 @RestController
 public class WorkSpaceController {
     WorkspaceService workspaceService;
-    @Autowired
-    ObjectMapper objectMapper;
 
     public WorkSpaceController(WorkspaceService workspaceService) {
         this.workspaceService = workspaceService;
@@ -31,8 +28,10 @@ public class WorkSpaceController {
     }
 
     @PostMapping("/workspace")
-    public ResponseEntity<WorkspaceResponse> createWorkspace(@RequestBody WorkspaceCreateRequest request) throws JsonProcessingException {
-        WorkspaceResponse workspaceResponseData = this.workspaceService.createWorkspace(request);
+    public ResponseEntity<WorkspaceResponse> createWorkspace(@RequestBody WorkspaceCreateRequest body, HttpServletRequest request) throws JsonProcessingException {
+        HttpSession session = request.getSession();
+        long userId = (Long) session.getAttribute("userId");
+        WorkspaceResponse workspaceResponseData = this.workspaceService.createWorkspace(userId, body);
 
         return ResponseEntity
                 .created(URI.create("/workspace/%s".formatted(workspaceResponseData.getWorkspaceId())))
