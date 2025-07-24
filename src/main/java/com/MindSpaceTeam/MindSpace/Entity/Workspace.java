@@ -12,7 +12,7 @@ import java.util.List;
 public class Workspace {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long workspaceId;
+    private Long workspaceId;
 
     @Column
     private String title;
