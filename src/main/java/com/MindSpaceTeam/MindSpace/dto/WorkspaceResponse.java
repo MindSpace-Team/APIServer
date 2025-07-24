@@ -4,13 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
+
 @AllArgsConstructor
 @Getter
 @Setter
 public class WorkspaceResponse {
     private long workspaceId;
     private String title;
-    private long createdAt;
+    private Instant createdAt;
 
     public WorkspaceResponse(){}
 }

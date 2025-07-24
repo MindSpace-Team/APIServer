@@ -5,14 +5,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
-@Entity
+@Entity(name="users")
 public class Users {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private long userId;
 
     @Column
     private String email;
@@ -23,15 +25,14 @@ public class Users {
     @Column
     private String oauthProvider;
 
-    @Column
-    private String role;
+    @OneToMany(mappedBy = "users")
+    private List<UserWorkspace> userWorkspace;
 
     @Builder
-    public Users(String email, String name, String oauthProvider, String role, Long userId) {
+    public Users(String email, String name, String oauthProvider, String role, long userId) {
         this.email = email;
         this.name = name;
         this.oauthProvider = oauthProvider;
-        this.role = role;
         this.userId = userId;
     }
 
