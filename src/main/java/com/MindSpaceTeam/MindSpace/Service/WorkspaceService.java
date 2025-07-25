@@ -1,6 +1,7 @@
 package com.MindSpaceTeam.MindSpace.Service;
 
 import com.MindSpaceTeam.MindSpace.Entity.UserWorkspace;
+import com.MindSpaceTeam.MindSpace.Entity.UserWorkspaceId;
 import com.MindSpaceTeam.MindSpace.Entity.Users;
 import com.MindSpaceTeam.MindSpace.Entity.Workspace;
 import com.MindSpaceTeam.MindSpace.Repository.UserRepository;
@@ -36,5 +37,12 @@ public class WorkspaceService {
         mongoTemplate.createCollection(String.valueOf(workspace.getWorkspaceId()));
 
         return new WorkspaceResponse(workspace.getWorkspaceId(), workspace.getTitle(), workspace.getCreated());
+    }
+
+    public void deleteWorkspace(long userId, long workspaceId) throws Exception {
+        UserWorkspaceId userWorkspaceId = new UserWorkspaceId(userId, workspaceId);
+
+        workspaceRepository.deleteById(workspaceId);
+        userWorkspaceRepository.deleteById(userWorkspaceId);
     }
 }

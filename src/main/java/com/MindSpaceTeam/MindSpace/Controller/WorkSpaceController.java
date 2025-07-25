@@ -7,10 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
@@ -38,6 +35,20 @@ public class WorkSpaceController {
             return ResponseEntity
                     .created(URI.create("/workspace/%s".formatted(workspaceResponse.getWorkspaceId())))
                     .build();
+        } catch (Exception e) {
+            return ResponseEntity
+                    .internalServerError()
+                    .build();
+        }
+    }
+
+    @DeleteMapping("/workspace/{workspaceId}")
+    public ResponseEntity<Object> deleteWorkspace(@PathVariable("workspaceId") Long workspaceId, HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        long userId = (Long) session.getAttribute("userId");
+        try {
+            this.workspaceService.deleteWorkspace(userId, workspaceId);
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
             return ResponseEntity
                     .internalServerError()
