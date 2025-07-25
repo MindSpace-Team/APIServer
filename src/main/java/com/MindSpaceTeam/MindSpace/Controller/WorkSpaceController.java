@@ -1,5 +1,6 @@
 package com.MindSpaceTeam.MindSpace.Controller;
 
+import com.MindSpaceTeam.MindSpace.Entity.Workspace;
 import com.MindSpaceTeam.MindSpace.Service.WorkspaceService;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceCreateRequest;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceResponse;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 public class WorkSpaceController {
@@ -21,8 +23,13 @@ public class WorkSpaceController {
     }
 
     @GetMapping("/workspaces")
-    public ResponseEntity<Object> getWorkSpaces() {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Object> getWorkSpaces(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Long userId = (Long) session.getAttribute("userId");
+        List<Workspace> workspaces = this.workspaceService.getAllWorkspaces(userId);
+        if (workspaces == null)
+            return ResponseEntity.internalServerError().build();
+        return ResponseEntity.ok(workspaces);
     }
 
     @PostMapping("/workspace")

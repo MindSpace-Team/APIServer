@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Slf4j
 @Service
 public class WorkspaceService {
@@ -49,5 +51,9 @@ public class WorkspaceService {
     public void updateWorkspaceTitle(long workspaceId, String newTitle) throws Exception {
         Workspace workspace = workspaceRepository.findById(workspaceId).orElseThrow();
         workspace.setTitle(newTitle);
+    }
+
+    public List<Workspace> getAllWorkspaces(long userId) {
+        return userWorkspaceRepository.findWorkspacesByUserId(userId);
     }
 }
