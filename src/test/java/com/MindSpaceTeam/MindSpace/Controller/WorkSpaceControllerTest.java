@@ -24,8 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -40,7 +39,7 @@ class WorkSpaceControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    StringRedisTemplate redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
     @MockitoBean
     private WorkspaceService workspaceService;
     @Autowired
@@ -92,8 +91,8 @@ class WorkSpaceControllerTest {
         Mockito.doNothing().when(workspaceService).deleteWorkspace(Mockito.anyLong(), Mockito.anyLong());
 
         mockMvc.perform(delete("/workspace/" + workspaceId)
-                .session(session)
-                .contentType(MediaType.APPLICATION_JSON))
+                    .session(session)
+                    .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }
 
@@ -105,8 +104,38 @@ class WorkSpaceControllerTest {
                 .when(workspaceService).deleteWorkspace(Mockito.anyLong(), Mockito.anyLong());
 
         mockMvc.perform(delete("/workspace/" + workspaceId)
-                .session(session)
-                .contentType(MediaType.APPLICATION_JSON))
+                    .session(session)
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void patchWorkspaceTest() throws Exception {
+        final String workspaceId = "123";
+        final String new_title = "{ \"title\": \"new title\"}";
+
+        Mockito.doNothing()
+                .when(workspaceService).updateWorkspaceTitle(Mockito.anyLong(), Mockito.anyString());
+
+        mockMvc.perform(patch("/workspace/" + workspaceId)
+                    .session(session)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(new_title))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void patchWorkspaceExceptionTest() throws Exception {
+        final String workspaceId = "123";
+        final String new_title = "{ \"title\": \"new title\"}";
+
+        Mockito.doThrow(new Exception("Internal Server Error"))
+                .when(workspaceService).updateWorkspaceTitle(Mockito.anyLong(), Mockito.anyString());
+
+        mockMvc.perform(patch("/workspace/" + workspaceId)
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new_title))
                 .andExpect(status().isInternalServerError());
     }
 }
