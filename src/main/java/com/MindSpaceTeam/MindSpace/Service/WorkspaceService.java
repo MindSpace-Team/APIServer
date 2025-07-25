@@ -45,4 +45,9 @@ public class WorkspaceService {
         workspaceRepository.deleteById(workspaceId);
         userWorkspaceRepository.deleteById(userWorkspaceId);
     }
+
+    public void updateWorkspaceTitle(long workspaceId, String newTitle) throws Exception {
+        Workspace workspace = workspaceRepository.findById(workspaceId).orElseThrow();
+        workspace.setTitle(newTitle);
+    }
 }

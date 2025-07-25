@@ -3,6 +3,7 @@ package com.MindSpaceTeam.MindSpace.Controller;
 import com.MindSpaceTeam.MindSpace.Service.WorkspaceService;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceCreateRequest;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceResponse;
+import com.MindSpaceTeam.MindSpace.dto.WorkspaceUpdateRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -53,6 +54,16 @@ public class WorkSpaceController {
             return ResponseEntity
                     .internalServerError()
                     .build();
+        }
+    }
+
+    @PatchMapping("/workspace/{workspaceId}")
+    public ResponseEntity<Object> patchWorkspaceTitle(@PathVariable("workspaceId") Long workspaceId, @RequestBody WorkspaceUpdateRequest body) {
+        try {
+            this.workspaceService.updateWorkspaceTitle(workspaceId, body.getTitle());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 }
