@@ -1,6 +1,8 @@
 package com.MindSpaceTeam.MindSpace.Controller;
 
-import com.MindSpaceTeam.MindSpace.Config.SecurityConfig;import com.MindSpaceTeam.MindSpace.Service.WorkspaceService;
+import com.MindSpaceTeam.MindSpace.Config.SecurityConfig;
+import com.MindSpaceTeam.MindSpace.Entity.Workspace;
+import com.MindSpaceTeam.MindSpace.Service.WorkspaceService;
 import com.MindSpaceTeam.MindSpace.TestSecurityConfig;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceCreateRequest;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceResponse;
@@ -23,10 +25,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = WorkSpaceController.class,
@@ -137,5 +139,27 @@ class WorkSpaceControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new_title))
                 .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void getAllWorkspaceTest() throws Exception {
+        Instant now = Instant.now();
+
+        String expectedJson = """
+                [
+                   { "workspaceId": 1, "title": "title1" },
+                   { "workspaceId": 2, "title": "title2" }
+                ]
+                """;
+        Mockito.doReturn(List.of(
+                new Workspace(1L, "title1", now),
+                new Workspace(2L, "title2", now))
+        ).when(workspaceService).getAllWorkspaces(Mockito.anyLong());
+
+        mockMvc.perform(get("/workspaces")
+                .session(session)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(expectedJson));
     }
 }
