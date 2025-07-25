@@ -31,4 +31,10 @@ public class Workspace {
     }
 
     public Workspace() {}
+
+    public Workspace(Long workpaceId, String title, Instant created) {
+        this.workspaceId = workpaceId;
+        this.title = title;
+        this.created = created;
+    }
 }
