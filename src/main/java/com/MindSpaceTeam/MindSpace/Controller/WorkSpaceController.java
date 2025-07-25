@@ -31,10 +31,17 @@ public class WorkSpaceController {
     public ResponseEntity<WorkspaceResponse> createWorkspace(@RequestBody WorkspaceCreateRequest body, HttpServletRequest request) throws JsonProcessingException {
         HttpSession session = request.getSession();
         long userId = (Long) session.getAttribute("userId");
-        WorkspaceResponse workspaceResponseData = this.workspaceService.createWorkspace(userId, body);
+        WorkspaceResponse workspaceResponse;
+        try {
+            workspaceResponse = this.workspaceService.createWorkspace(userId, body);
 
-        return ResponseEntity
-                .created(URI.create("/workspace/%s".formatted(workspaceResponseData.getWorkspaceId())))
-                .build();
+            return ResponseEntity
+                    .created(URI.create("/workspace/%s".formatted(workspaceResponse.getWorkspaceId())))
+                    .build();
+        } catch (Exception e) {
+            return ResponseEntity
+                    .internalServerError()
+                    .build();
+        }
     }
 }
