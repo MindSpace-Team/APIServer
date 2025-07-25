@@ -25,9 +25,6 @@ public class Users {
     @Column
     private String oauthProvider;
 
-    @OneToMany(mappedBy = "users")
-    private List<UserWorkspace> userWorkspace;
-
     @Builder
     public Users(String email, String name, String oauthProvider, String role, long userId) {
         this.email = email;

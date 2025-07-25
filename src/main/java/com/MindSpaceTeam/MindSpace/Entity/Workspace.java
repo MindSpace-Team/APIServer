@@ -23,9 +23,6 @@ public class Workspace {
     @Column(updatable = false)
     private Instant created;
 
-    @OneToMany(mappedBy="workspace")
-    private List<UserWorkspace> userWorkspaceList;
-
     public Workspace(String title) {
         this.title = title;
     }
