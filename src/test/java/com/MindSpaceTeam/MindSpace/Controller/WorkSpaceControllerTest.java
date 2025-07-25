@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -81,6 +82,31 @@ class WorkSpaceControllerTest {
                     .session(session)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void deleteWorkspaceTest() throws Exception {
+        final String workspaceId = "123";
+
+        Mockito.doNothing().when(workspaceService).deleteWorkspace(Mockito.anyLong(), Mockito.anyLong());
+
+        mockMvc.perform(delete("/workspace/" + workspaceId)
+                .session(session)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void deleteWorkspaceExceptionTest() throws Exception {
+        final String workspaceId = "123";
+
+        Mockito.doThrow(new Exception("DB down"))
+                .when(workspaceService).deleteWorkspace(Mockito.anyLong(), Mockito.anyLong());
+
+        mockMvc.perform(delete("/workspace/" + workspaceId)
+                .session(session)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());
     }
 }
