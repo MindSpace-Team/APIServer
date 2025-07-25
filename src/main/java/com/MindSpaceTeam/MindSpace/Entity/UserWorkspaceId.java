@@ -9,6 +9,11 @@ public class UserWorkspaceId implements Serializable {
 
     public UserWorkspaceId() {}
 
+    public UserWorkspaceId(long users, long workspace) {
+        this.users = users;
+        this.workspace = workspace;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
