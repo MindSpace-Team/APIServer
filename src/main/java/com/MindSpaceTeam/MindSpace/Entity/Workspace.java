@@ -2,6 +2,7 @@ package com.MindSpaceTeam.MindSpace.Entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Entity
 @Getter
+@Setter
 public class Workspace {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
