@@ -5,6 +5,7 @@ import com.MindSpaceTeam.MindSpace.TestSecurityConfig;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceCreateRequest;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -43,15 +45,24 @@ class WorkSpaceControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
+    static MockHttpSession session;
+
+    @BeforeAll
+    static void setup() {
+        session = new MockHttpSession();
+        session.setAttribute("userId", 123L);
+    }
+
     @Test
     void createWorkspaceTest() throws Exception {
         WorkspaceCreateRequest request = new WorkspaceCreateRequest("title1");
         WorkspaceResponse response = new WorkspaceResponse(1, "title1", Instant.now());
 
-        Mockito.when(this.workspaceService.createWorkspace(ArgumentMatchers.any(), ArgumentMatchers.any(WorkspaceCreateRequest.class)))
+        Mockito.when(this.workspaceService.createWorkspace(ArgumentMatchers.anyLong(), ArgumentMatchers.any(WorkspaceCreateRequest.class)))
                         .thenReturn(response);
 
         mockMvc.perform(post("/workspace")
+                        .session(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -60,12 +71,14 @@ class WorkSpaceControllerTest {
 
     @Test
     void createWorkSpaceExceptionTest() throws Exception {
-        String body = "{ \"title\": \"title1\"}";
+        String body = "{ \"title\": \"title1\" }";
 
         Mockito.doThrow(new DataAccessResourceFailureException("DB douwn"))
-                .when(workspaceService);
+                .when(workspaceService)
+                .createWorkspace(Mockito.anyLong(), Mockito.any(WorkspaceCreateRequest.class));
 
         mockMvc.perform(post("/workspace")
+                    .session(session)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body))
                 .andExpect(status().isInternalServerError());
