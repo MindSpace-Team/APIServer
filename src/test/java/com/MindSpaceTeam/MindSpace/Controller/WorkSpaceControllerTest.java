@@ -162,4 +162,15 @@ class WorkSpaceControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(expectedJson));
     }
+
+    @Test
+    void getWorksapceDatasTest() throws Exception {
+        final String workspaceId = "123";
+
+        mockMvc.perform(get("/workspace/" + workspaceId)
+                    .contentType("application/json")
+                    .session(session))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+    }
 }
