@@ -96,7 +96,7 @@ public class Oauth2UserService {
             return this.userRepository.save(user);
         } else { // Sign in
             log.info("%s User signed in".formatted(user.getEmail()));
-            return user;
+            return foundedUser.get();
         }
     }
 
