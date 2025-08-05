@@ -9,10 +9,14 @@ import com.MindSpaceTeam.MindSpace.Repository.UserWorkspaceRepository;
 import com.MindSpaceTeam.MindSpace.Repository.WorkspaceRepository;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceCreateRequest;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceResponse;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Projections;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.Document;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -36,7 +40,7 @@ public class WorkspaceService {
         workspace = this.workspaceRepository.save(workspace);
         this.userWorkspaceRepository.save(new UserWorkspace(user, workspace, "owner"));
 
-        mongoTemplate.createCollection(String.valueOf(workspace.getWorkspaceId()));
+        mongoTemplate.createCollection("MindSpace" + workspace.getWorkspaceId());
 
         return new WorkspaceResponse(workspace.getWorkspaceId(), workspace.getTitle(), workspace.getCreated());
     }
@@ -56,4 +60,13 @@ public class WorkspaceService {
     public List<Workspace> getAllWorkspaces(long userId) {
         return userWorkspaceRepository.findWorkspacesByUserId(userId);
     }
+
+    public List<Document> getAllWorkspaceElements(long workspaceId) {
+        MongoCollection<Document> documents = this.mongoTemplate.getCollection("MindSpace" + workspaceId);
+        List<Document> elements = new ArrayList<>();
+        documents.find().projection(Projections.excludeId()).into(elements);
+
+        return elements;
+    }
+
 }

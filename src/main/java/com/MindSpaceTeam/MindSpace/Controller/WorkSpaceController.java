@@ -8,6 +8,7 @@ import com.MindSpaceTeam.MindSpace.dto.WorkspaceUpdateRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.bson.Document;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -72,5 +73,11 @@ public class WorkSpaceController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @GetMapping("/workspace/{workspaceId}")
+    public ResponseEntity<List<Document>> getWorkspaceDatas(@PathVariable("workspaceId") Long workspaceId) {
+        List<Document> allDatas = this.workspaceService.getAllWorkspaceElements(workspaceId);
+        return ResponseEntity.ok(allDatas);
     }
 }
