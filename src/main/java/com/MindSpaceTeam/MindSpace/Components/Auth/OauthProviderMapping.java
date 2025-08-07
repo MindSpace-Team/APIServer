@@ -1,6 +1,8 @@
 package com.MindSpaceTeam.MindSpace.Components.Auth;
 
 import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
+import com.MindSpaceTeam.MindSpace.Exception.InvalidArgumentException;
+import com.MindSpaceTeam.MindSpace.Exception.ProviderNotSupportedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -22,12 +24,12 @@ public class OauthProviderMapping {
              case Google:
                  return getGoogleLoginRedirectionUrl(state);
              case Naver:
-                 throw new IllegalStateException("Naver is not supported yet");
+                 throw new ProviderNotSupportedException("Naver is not supported yet");
              case Kakao:
-                 throw new IllegalStateException("Kakao is not supported yet");
+                 throw new ProviderNotSupportedException("Kakao is not supported yet");
          }
 
-         throw new IllegalArgumentException("Unknown oauth provider: " + oauthProvider);
+         throw new InvalidArgumentException("Unknown oauth provider: " + oauthProvider);
     }
 
     private String getGoogleLoginRedirectionUrl(String state) {

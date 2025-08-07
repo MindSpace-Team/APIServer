@@ -3,6 +3,7 @@ package com.MindSpaceTeam.MindSpace.Controller;
 import com.MindSpaceTeam.MindSpace.Components.Auth.OauthProviderMapping;
 import com.MindSpaceTeam.MindSpace.Components.Auth.Type.OauthProvider;
 import com.MindSpaceTeam.MindSpace.Entity.Users;
+import com.MindSpaceTeam.MindSpace.Exception.*;
 import com.MindSpaceTeam.MindSpace.Service.Oauth2UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -28,13 +29,8 @@ public class OAuthController {
     public ResponseEntity<String> authorizePage(@PathVariable(value="provider") OauthProvider provider, HttpServletRequest request) {
         String state = UUID.randomUUID().toString();
         HttpSession session = request.getSession();
-        String redirectUrl;
-        try {
-            redirectUrl = this.oauth2ProviderMapping.getOauthRedirectionUrl(provider, state);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            log.warn("Failed to get redirectUrl {}", e.getMessage());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        String redirectUrl = this.oauth2ProviderMapping.getOauthRedirectionUrl(provider, state);
+
         HttpHeaders headers = new HttpHeaders();
         session.setAttribute("oauth2_state", state);
         headers.setLocation(URI.create(redirectUrl));
@@ -52,14 +48,12 @@ public class OAuthController {
         HttpSession session = request.getSession();
         String savedState = session.getAttribute("oauth2_state").toString();
 
-        if (savedState == null) {
-            log.warn("State code is not exist in session");
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        if (savedState == null || state == null) {
+            throw new OauthStateNotExistException("State code is not exist in session");
         }
 
         if (!savedState.equals(state)) {
-            log.warn("Failed to verify state code");
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            throw new OauthStateVerifyFailedException("Failed to verify state code");
         }
 
         String sessionId = session.getId();
@@ -103,4 +97,21 @@ public class OAuthController {
                 .body("로그아웃 성공");
     }
 
+    @ExceptionHandler({ProviderNotSupportedException.class, InvalidArgumentException.class})
+    public ResponseEntity<String> handleProviderNotSupportedException(ProviderNotSupportedException e) {
+        log.warn(e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    }
+
+    @ExceptionHandler({OauthStateNotExistException.class, OauthStateVerifyFailedException.class})
+    public ResponseEntity<String> handleOauthStateVerifyFailedException(OauthStateVerifyFailedException e) {
+        log.warn(e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidJwtTokenException.class)
+    public ResponseEntity<String> handlerInvalidJwtTokenException(InvalidJwtTokenException e) {
+        log.warn(e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+    }
 }

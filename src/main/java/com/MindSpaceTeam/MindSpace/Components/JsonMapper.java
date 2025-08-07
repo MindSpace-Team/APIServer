@@ -1,5 +1,6 @@
 package com.MindSpaceTeam.MindSpace.Components;
 
+import com.MindSpaceTeam.MindSpace.Exception.InvalidJsonFormatException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,7 +15,11 @@ public class JsonMapper {
         this.objectMapper = objectMapper;
     }
 
-    public JsonNode toJsonNode(String json) throws JsonProcessingException {
-        return objectMapper.readTree(json);
+    public JsonNode toJsonNode(String json) {
+        try {
+            return objectMapper.readTree(json);
+        } catch (JsonProcessingException e) {
+            throw new InvalidJsonFormatException("Json parsing exception");
+        }
     }
 }

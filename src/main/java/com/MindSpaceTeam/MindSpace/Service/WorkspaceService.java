@@ -4,6 +4,7 @@ import com.MindSpaceTeam.MindSpace.Entity.UserWorkspace;
 import com.MindSpaceTeam.MindSpace.Entity.UserWorkspaceId;
 import com.MindSpaceTeam.MindSpace.Entity.Users;
 import com.MindSpaceTeam.MindSpace.Entity.Workspace;
+import com.MindSpaceTeam.MindSpace.Exception.WorkspaceNotFoundException;
 import com.MindSpaceTeam.MindSpace.Repository.UserRepository;
 import com.MindSpaceTeam.MindSpace.Repository.UserWorkspaceRepository;
 import com.MindSpaceTeam.MindSpace.Repository.WorkspaceRepository;
@@ -45,15 +46,17 @@ public class WorkspaceService {
         return new WorkspaceResponse(workspace.getWorkspaceId(), workspace.getTitle(), workspace.getCreated());
     }
 
-    public void deleteWorkspace(long userId, long workspaceId) throws Exception {
+    public void deleteWorkspace(long userId, long workspaceId) {
         UserWorkspaceId userWorkspaceId = new UserWorkspaceId(userId, workspaceId);
 
         workspaceRepository.deleteById(workspaceId);
         userWorkspaceRepository.deleteById(userWorkspaceId);
     }
 
-    public void updateWorkspaceTitle(long workspaceId, String newTitle) throws Exception {
-        Workspace workspace = workspaceRepository.findById(workspaceId).orElseThrow();
+    public void updateWorkspaceTitle(long workspaceId, String newTitle) {
+        Workspace workspace = workspaceRepository.findById(workspaceId)
+                .orElseThrow(() ->
+                        new WorkspaceNotFoundException("Workspace not found while update workspace title"));
         workspace.setTitle(newTitle);
     }
 
