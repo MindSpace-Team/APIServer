@@ -6,7 +6,6 @@ import com.MindSpaceTeam.MindSpace.Service.WorkspaceService;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceCreateRequest;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceResponse;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceUpdateRequest;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,7 @@ public class WorkSpaceController {
     }
 
     @PostMapping("/workspace")
-    public ResponseEntity<WorkspaceResponse> createWorkspace(@RequestBody WorkspaceCreateRequest body, HttpServletRequest request) throws JsonProcessingException {
+    public ResponseEntity<WorkspaceResponse> createWorkspace(@RequestBody WorkspaceCreateRequest body, HttpServletRequest request) {
         HttpSession session = request.getSession();
         long userId = (Long) session.getAttribute("userId");
         WorkspaceResponse workspaceResponse;
@@ -56,7 +55,6 @@ public class WorkSpaceController {
         this.workspaceService.deleteWorkspace(userId, workspaceId);
 
         return ResponseEntity.noContent().build();
-
     }
 
     @PatchMapping("/workspace/{workspaceId}")
