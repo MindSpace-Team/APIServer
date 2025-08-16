@@ -1,5 +1,6 @@
 package com.MindSpaceTeam.MindSpace.Service;
 
+import com.MindSpaceTeam.MindSpace.Entity.Editor.EditorElements;
 import com.MindSpaceTeam.MindSpace.Entity.UserWorkspace;
 import com.MindSpaceTeam.MindSpace.Entity.UserWorkspaceId;
 import com.MindSpaceTeam.MindSpace.Entity.Users;
@@ -12,9 +13,14 @@ import com.MindSpaceTeam.MindSpace.dto.WorkspaceCreateRequest;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceResponse;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Projections;
+import com.mongodb.client.result.DeleteResult;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.World;
 import org.bson.Document;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -27,6 +33,8 @@ public class WorkspaceService {
     private UserWorkspaceRepository userWorkspaceRepository;
     private UserRepository userRepository;
     private MongoOperations mongoTemplate;
+    @Value("${mindspace.collections.workspace}")
+    String WORKSPACE_COLLECTION_NAME;
 
     public WorkspaceService(WorkspaceRepository workspaceRepository, UserWorkspaceRepository userWorkspaceRepository, UserRepository userRepository, MongoOperations mongoTemplate) {
         this.workspaceRepository = workspaceRepository;
@@ -41,7 +49,12 @@ public class WorkspaceService {
         workspace = this.workspaceRepository.save(workspace);
         this.userWorkspaceRepository.save(new UserWorkspace(user, workspace, "owner"));
 
-        mongoTemplate.createCollection("MindSpace" + workspace.getWorkspaceId());
+        if (!mongoTemplate.collectionExists(WORKSPACE_COLLECTION_NAME)) {
+            mongoTemplate.createCollection(WORKSPACE_COLLECTION_NAME);
+        }
+        EditorElements editorElements = new EditorElements(new ArrayList<>());
+        editorElements.setId(workspace.getWorkspaceId());
+        mongoTemplate.save(editorElements);
 
         return new WorkspaceResponse(workspace.getWorkspaceId(), workspace.getTitle(), workspace.getCreated());
     }
@@ -49,8 +62,12 @@ public class WorkspaceService {
     public void deleteWorkspace(long userId, long workspaceId) {
         UserWorkspaceId userWorkspaceId = new UserWorkspaceId(userId, workspaceId);
 
-        workspaceRepository.deleteById(workspaceId);
         userWorkspaceRepository.deleteById(userWorkspaceId);
+        workspaceRepository.deleteById(workspaceId);
+        Query query = new Query(Criteria.where("_id").is(workspaceId));
+        log.info("Mongo DB info: {} {}", workspaceId, WORKSPACE_COLLECTION_NAME);
+        DeleteResult r = this.mongoTemplate.remove(query, WORKSPACE_COLLECTION_NAME);
+        log.info("mongo delete: {}", r.getDeletedCount());
     }
 
     public void updateWorkspaceTitle(long workspaceId, String newTitle) {
