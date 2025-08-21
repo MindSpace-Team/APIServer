@@ -2,6 +2,8 @@ package com.MindSpaceTeam.MindSpace.Controller;
 
 import com.MindSpaceTeam.MindSpace.Config.SecurityConfig;
 import com.MindSpaceTeam.MindSpace.Entity.Workspace;
+import com.MindSpaceTeam.MindSpace.Exception.Core.SystemException;
+import com.MindSpaceTeam.MindSpace.Exception.WorkspaceNotFoundException;
 import com.MindSpaceTeam.MindSpace.Service.WorkspaceService;
 import com.MindSpaceTeam.MindSpace.TestSecurityConfig;
 import com.MindSpaceTeam.MindSpace.dto.WorkspaceCreateRequest;
@@ -102,7 +104,7 @@ class WorkSpaceControllerTest {
     void deleteWorkspaceExceptionTest() throws Exception {
         final String workspaceId = "123";
 
-        Mockito.doThrow(new Exception("DB down"))
+        Mockito.doThrow(new SystemException("DB down"))
                 .when(workspaceService).deleteWorkspace(Mockito.anyLong(), Mockito.anyLong());
 
         mockMvc.perform(delete("/workspace/" + workspaceId)
@@ -131,7 +133,7 @@ class WorkSpaceControllerTest {
         final String workspaceId = "123";
         final String new_title = "{ \"title\": \"new title\"}";
 
-        Mockito.doThrow(new Exception("Internal Server Error"))
+        Mockito.doThrow(new WorkspaceNotFoundException("Workspace not found while update workspace title"))
                 .when(workspaceService).updateWorkspaceTitle(Mockito.anyLong(), Mockito.anyString());
 
         mockMvc.perform(patch("/workspace/" + workspaceId)
