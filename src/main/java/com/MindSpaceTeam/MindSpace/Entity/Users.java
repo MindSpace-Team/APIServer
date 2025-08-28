@@ -14,20 +14,23 @@ public class Users {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @Column
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column
+    @Column(nullable = false)
     private String name;
 
-    @Column
+    @Column(nullable = false)
     private String oauthProvider;
+
+    @Column(nullable = false)
+    private String role;
 
     @Builder
     public Users(String email, String name, String oauthProvider, String role) {
         this.email = email;
         this.name = name;
         this.oauthProvider = oauthProvider;
+        this.role = role;
     }
-
 }
