@@ -24,11 +24,10 @@ public class Users {
     private String oauthProvider;
 
     @Builder
-    public Users(String email, String name, String oauthProvider, String role, long userId) {
+    public Users(String email, String name, String oauthProvider, String role) {
         this.email = email;
         this.name = name;
         this.oauthProvider = oauthProvider;
-        this.userId = userId;
     }
 
 }
