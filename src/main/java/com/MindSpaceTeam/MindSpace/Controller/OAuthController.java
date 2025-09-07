@@ -25,7 +25,9 @@ public class OAuthController {
     }
 
     @GetMapping("/oauth2/authorization/{provider}")
-    public ResponseEntity<String> authorizePage(@PathVariable(value="provider") OauthProvider provider, HttpServletRequest request) {
+    public ResponseEntity<String> authorizePage(@PathVariable(value="provider") OauthProvider provider,
+                                                @RequestParam("redirect_url") String successRedirectUrl,
+                                                HttpServletRequest request) {
         String state = UUID.randomUUID().toString();
         HttpSession session = request.getSession();
         String redirectUrl;
@@ -37,6 +39,7 @@ public class OAuthController {
         }
         HttpHeaders headers = new HttpHeaders();
         session.setAttribute("oauth2_state", state);
+        session.setAttribute("successRedirectUrl", successRedirectUrl);
         headers.setLocation(URI.create(redirectUrl));
         log.info("Redirect to {} authorization page", provider.getProviderName());
 
@@ -51,15 +54,19 @@ public class OAuthController {
                                                            @PathVariable(value = "provider") OauthProvider provider) {
         HttpSession session = request.getSession();
         String savedState = session.getAttribute("oauth2_state").toString();
+        String successRedirectUrl = session.getAttribute("successRedirectUrl").toString();
 
+        HttpHeaders headers = new HttpHeaders();
         if (savedState == null) {
             log.warn("State code is not exist in session");
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            headers.setLocation(URI.create("www.mind-space-kohl.vercel.app/"));
+            return new ResponseEntity<>(headers, HttpStatus.FOUND);
         }
 
         if (!savedState.equals(state)) {
             log.warn("Failed to verify state code");
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            headers.setLocation(URI.create("www.mind-space-kohl.vercel.app/"));
+            return new ResponseEntity<>(headers, HttpStatus.FORBIDDEN);
         }
 
         String sessionId = session.getId();
@@ -75,12 +82,10 @@ public class OAuthController {
                 .sameSite("Strict")
                 .build();
 
-        HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
+        headers.setLocation(URI.create(successRedirectUrl));
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body("로그인 성공");
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
     @PostMapping("/logout")
