@@ -7,6 +7,7 @@ import com.MindSpaceTeam.MindSpace.Service.Oauth2UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,8 @@ import java.util.UUID;
 @Slf4j
 @RestController
 public class OAuthController {
+    @Value("oauth2.login.failed-url")
+    private String loginFailedUrl;
     private Oauth2UserService oauth2UserService;
     private OauthProviderMapping oauth2ProviderMapping;
 
@@ -59,13 +62,13 @@ public class OAuthController {
         HttpHeaders headers = new HttpHeaders();
         if (savedState == null) {
             log.warn("State code is not exist in session");
-            headers.setLocation(URI.create("www.mind-space-kohl.vercel.app/"));
+            headers.setLocation(URI.create(loginFailedUrl));
             return new ResponseEntity<>(headers, HttpStatus.FOUND);
         }
 
         if (!savedState.equals(state)) {
             log.warn("Failed to verify state code");
-            headers.setLocation(URI.create("www.mind-space-kohl.vercel.app/"));
+            headers.setLocation(URI.create(loginFailedUrl));
             return new ResponseEntity<>(headers, HttpStatus.FORBIDDEN);
         }
 
@@ -83,7 +86,7 @@ public class OAuthController {
                 .build();
 
         headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
-        headers.setLocation(URI.create(successRedirectUrl));
+        headers.setLocation(URI.create("https://" + successRedirectUrl));
 
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
